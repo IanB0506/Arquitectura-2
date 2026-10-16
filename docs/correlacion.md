@@ -60,7 +60,14 @@ si puntaje ≥ umbral crítico  → la severidad sube a CRITICAL
    segundos se revisan las que vencieron (90 s):
    - si ninguna alerta la usó como evidencia, se emite `POSIBLE_FALSO_POSITIVO` (severidad LOW,
      estado AUTO_CLASSIFIED);
-   - si mientras tanto llegó evidencia, se emite la alerta normal (corroboración tardía).
+   - si mientras tanto llegó evidencia, se emite la alerta normal (corroboración tardía);
+   - **excepción, puesta al día tras una caída:** si el motor está procesando eventos con más de
+     10 s de atraso (esperaron en Kafka o en un spool), no clasifica ningún falso positivo hasta 20 s
+     después del último evento atrasado, porque la evidencia que corrobora un pánico puede venir
+     detrás en la cola (ADR-006).
+9. Cada alerta tiene un **ID determinista** (derivado de la regla, la zona y el evento ancla) y se
+   publica **antes** de guardar el estado del incidente: si el proceso muere en medio, otra instancia
+   recalcula la misma alerta con el mismo ID y la base no la duplica.
 
 ## 3. Reglas configuradas
 
@@ -83,8 +90,10 @@ recompilar; basta con reiniciar el servicio.
 | Disparo o vidrios rotos (probabilidad ≥ 0,6) | +0,15 |
 | Otra persona reporta robo o presiona pánico (máximo 2) | +0,10 c/u |
 
-Ejemplo de la tabla 2.4: pánico (0,40) + 85 km/h (0,30) = **0,70, HIGH**; + placa XYZ123 a 87 km/h
-(0,20) = **0,90, CRITICAL** (escala).
+Ejemplo de la tabla 2.4: pánico (0,40) + 85 km/h (0,30) + placa XYZ123 a alta velocidad (0,20) =
+**0,90, CRITICAL**. Con el escenario `tabla-2-4` la placa llega antes que la velocidad y la alerta sale
+directo en CRITICAL; con `robo-en-curso` llega primero la velocidad: **0,70, HIGH**, y al llegar la
+placa a 87 km/h escala a **0,90, CRITICAL**.
 
 ### R2 - Accidente vial iniciado por un reporte (`ACCIDENTE_VIAL`)
 

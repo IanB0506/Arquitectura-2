@@ -6,8 +6,6 @@ import gt.umg.centinela.common.model.NormalizedEvent;
 import gt.umg.centinela.correlation.engine.CorrelationEngine;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -18,8 +16,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class NormalizedEventListener {
-
-    private static final Logger log = LoggerFactory.getLogger(NormalizedEventListener.class);
 
     private final CorrelationEngine engine;
     private final AlertPublisher publisher;
@@ -32,19 +28,18 @@ public class NormalizedEventListener {
     }
 
     @KafkaListener(topics = Topics.NORMALIZED, groupId = "correlation", concurrency = "${correlation.concurrency:6}")
-    public void onEvent(ConsumerRecord<String, String> record) throws Exception {
+    public void onEvent(ConsumerRecord<String, String> record) {
         NormalizedEvent event = Json.read(record.value(), NormalizedEvent.class);
-        publisher.publish(engine.onEvent(event));
+        engine.onEvent(event, publisher::publish); // si Kafka no confirma, se lanza y el evento se reintenta
         metrics.counter("correlation.events.processed", "sensor_type", event.sensorType().name()).increment();
     }
 
-    /** Cada 2 s revisa anclas cuyo plazo de corroboracion vencio (falsos positivos). */
+    /**
+     * Cada 2 s revisa anclas cuyo plazo de corroboracion vencio (falsos positivos). Si Redis o Kafka no
+     * responden, la falla la resume ScheduledTaskErrorHandler (una linea por minuto) y la ronda se repite.
+     */
     @Scheduled(fixedDelay = 2000, initialDelay = 5000)
     public void sweepPending() {
-        try {
-            publisher.publish(engine.sweepPending());
-        } catch (Exception e) {
-            log.warn("No se pudo revisar anclas pendientes: {}", e.getMessage());
-        }
+        engine.sweepPending(publisher::publish);
     }
 }
