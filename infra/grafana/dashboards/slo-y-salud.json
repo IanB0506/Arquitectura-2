@@ -19,8 +19,8 @@
     {
       "id": 1,
       "type": "stat",
-      "title": "SLO-1: alertas en menos de 2 s",
-      "description": "Objetivo: 95 % de las alertas HIGH/CRITICAL persistidas en menos de 2 s desde el evento que las disparo",
+      "title": "SLO-1 · 5 min",
+      "description": "Objetivo: 95 % de las alertas HIGH/CRITICAL persistidas en menos de 2 s desde el evento que las disparo. Se mide en los ultimos 5 minutos, la ventana del SLO-1 (ADR-008), sin importar el rango del tablero: las alertas que esperaron durante una caida suben este valor solo mientras estan dentro de esos 5 minutos. La historia completa, con la causa de cada incumplimiento, esta en la serie de tiempo y en la tabla del tablero de SLO.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "timescaledb"
@@ -28,7 +28,7 @@
       "gridPos": {
         "x": 0,
         "y": 0,
-        "w": 6,
+        "w": 5,
         "h": 4
       },
       "targets": [
@@ -38,7 +38,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "timescaledb"
           },
-          "rawSql": "SELECT 100.0 * avg(CASE WHEN latency_ms <= 2000 THEN 1 ELSE 0 END) FROM alert_revisions WHERE $__timeFilter(received_at) AND status IN ('NEW','ESCALATED') AND severity IN ('HIGH','CRITICAL')",
+          "rawSql": "SELECT 100.0 * avg(CASE WHEN latency_ms <= 2000 THEN 1 ELSE 0 END) FROM alert_revisions WHERE received_at > now() - INTERVAL '5 minutes' AND status IN ('NEW','ESCALATED') AND severity IN ('HIGH','CRITICAL')",
           "format": "table",
           "rawQuery": true,
           "editorMode": "code"
@@ -67,7 +67,8 @@
               }
             ]
           },
-          "decimals": 1
+          "decimals": 1,
+          "noValue": "Sin alertas"
         },
         "overrides": []
       },
@@ -89,16 +90,16 @@
     {
       "id": 2,
       "type": "stat",
-      "title": "Latencia p50",
-      "description": "",
+      "title": "p50 · 5 min",
+      "description": "Mediana de la latencia evento -> alerta guardada (HIGH/CRITICAL). Se mide en los ultimos 5 minutos, la ventana del SLO-1 (ADR-008), sin importar el rango del tablero: las alertas que esperaron durante una caida suben este valor solo mientras estan dentro de esos 5 minutos. La historia completa, con la causa de cada incumplimiento, esta en la serie de tiempo y en la tabla del tablero de SLO.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "timescaledb"
       },
       "gridPos": {
-        "x": 6,
+        "x": 5,
         "y": 0,
-        "w": 4,
+        "w": 3,
         "h": 4
       },
       "targets": [
@@ -108,7 +109,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "timescaledb"
           },
-          "rawSql": "SELECT percentile_cont(0.50) WITHIN GROUP (ORDER BY latency_ms) FROM alert_revisions WHERE $__timeFilter(received_at) AND status IN ('NEW','ESCALATED') AND severity IN ('HIGH','CRITICAL')",
+          "rawSql": "SELECT percentile_cont(0.50) WITHIN GROUP (ORDER BY latency_ms) FROM alert_revisions WHERE received_at > now() - INTERVAL '5 minutes' AND status IN ('NEW','ESCALATED') AND severity IN ('HIGH','CRITICAL')",
           "format": "table",
           "rawQuery": true,
           "editorMode": "code"
@@ -137,7 +138,8 @@
               }
             ]
           },
-          "decimals": 0
+          "decimals": 0,
+          "noValue": "Sin alertas"
         },
         "overrides": []
       },
@@ -159,16 +161,16 @@
     {
       "id": 3,
       "type": "stat",
-      "title": "Latencia p95",
-      "description": "",
+      "title": "p95 · 5 min",
+      "description": "Percentil 95 de la latencia evento -> alerta guardada (HIGH/CRITICAL). Se mide en los ultimos 5 minutos, la ventana del SLO-1 (ADR-008), sin importar el rango del tablero: las alertas que esperaron durante una caida suben este valor solo mientras estan dentro de esos 5 minutos. La historia completa, con la causa de cada incumplimiento, esta en la serie de tiempo y en la tabla del tablero de SLO.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "timescaledb"
       },
       "gridPos": {
-        "x": 10,
+        "x": 8,
         "y": 0,
-        "w": 4,
+        "w": 3,
         "h": 4
       },
       "targets": [
@@ -178,7 +180,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "timescaledb"
           },
-          "rawSql": "SELECT percentile_cont(0.95) WITHIN GROUP (ORDER BY latency_ms) FROM alert_revisions WHERE $__timeFilter(received_at) AND status IN ('NEW','ESCALATED') AND severity IN ('HIGH','CRITICAL')",
+          "rawSql": "SELECT percentile_cont(0.95) WITHIN GROUP (ORDER BY latency_ms) FROM alert_revisions WHERE received_at > now() - INTERVAL '5 minutes' AND status IN ('NEW','ESCALATED') AND severity IN ('HIGH','CRITICAL')",
           "format": "table",
           "rawQuery": true,
           "editorMode": "code"
@@ -207,7 +209,8 @@
               }
             ]
           },
-          "decimals": 0
+          "decimals": 0,
+          "noValue": "Sin alertas"
         },
         "overrides": []
       },
@@ -229,16 +232,16 @@
     {
       "id": 4,
       "type": "stat",
-      "title": "Latencia p99",
-      "description": "",
+      "title": "p99 · 5 min",
+      "description": "Percentil 99 de la latencia evento -> alerta guardada (HIGH/CRITICAL). Se mide en los ultimos 5 minutos, la ventana del SLO-1 (ADR-008), sin importar el rango del tablero: las alertas que esperaron durante una caida suben este valor solo mientras estan dentro de esos 5 minutos. La historia completa, con la causa de cada incumplimiento, esta en la serie de tiempo y en la tabla del tablero de SLO.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "timescaledb"
       },
       "gridPos": {
-        "x": 14,
+        "x": 11,
         "y": 0,
-        "w": 4,
+        "w": 3,
         "h": 4
       },
       "targets": [
@@ -248,7 +251,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "timescaledb"
           },
-          "rawSql": "SELECT percentile_cont(0.99) WITHIN GROUP (ORDER BY latency_ms) FROM alert_revisions WHERE $__timeFilter(received_at) AND status IN ('NEW','ESCALATED') AND severity IN ('HIGH','CRITICAL')",
+          "rawSql": "SELECT percentile_cont(0.99) WITHIN GROUP (ORDER BY latency_ms) FROM alert_revisions WHERE received_at > now() - INTERVAL '5 minutes' AND status IN ('NEW','ESCALATED') AND severity IN ('HIGH','CRITICAL')",
           "format": "table",
           "rawQuery": true,
           "editorMode": "code"
@@ -277,7 +280,8 @@
               }
             ]
           },
-          "decimals": 0
+          "decimals": 0,
+          "noValue": "Sin alertas"
         },
         "overrides": []
       },
@@ -306,9 +310,9 @@
         "uid": "timescaledb"
       },
       "gridPos": {
-        "x": 18,
+        "x": 14,
         "y": 0,
-        "w": 6,
+        "w": 4,
         "h": 4
       },
       "targets": [
@@ -344,6 +348,140 @@
               {
                 "color": "red",
                 "value": 10000
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "SLO-2: criticos perdidos",
+      "description": "Panicos, reportes y disparos que el simulador no pudo enviar ni guardar en su spool (objetivo: 0). Si sube, el sistema genera una alerta CRITICAL en la consola.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(simulator_events_sent_total{result=\"lost\"}) or vector(0)",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center",
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "SLO-4: atraso en Kafka",
+      "description": "Mensajes pendientes de los grupos ingestion, correlation, event-store y alert-store (objetivo: menos de 1000; si no baja en dos mediciones, alerta MEDIUM de rezago).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "timescaledb"
+      },
+      "gridPos": {
+        "x": 21,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "timescaledb"
+          },
+          "rawSql": "SELECT consumer_lag FROM slo_measurements WHERE $__timeFilter(measured_at) AND consumer_lag IS NOT NULL ORDER BY measured_at DESC LIMIT 1",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 500
+              },
+              {
+                "color": "red",
+                "value": 1000
               }
             ]
           },
@@ -929,7 +1067,7 @@
             "type": "grafana-postgresql-datasource",
             "uid": "timescaledb"
           },
-          "rawSql": "SELECT measured_at AS \"Hora\", alerts AS \"Alertas\", round(p95_ms::numeric) AS \"p95 (ms)\",\nround((within_slo_ratio * 100)::numeric, 1) AS \"% < 2 s\", round(freshness_p95_ms::numeric) AS \"Frescura p95 (ms)\"\nFROM slo_measurements WHERE $__timeFilter(measured_at) AND breached ORDER BY measured_at DESC LIMIT 50",
+          "rawSql": "SELECT measured_at AS \"Hora\", alerts AS \"Alertas\", round(p95_ms::numeric) AS \"p95 (ms)\",\nround((within_slo_ratio * 100)::numeric, 1) AS \"% < 2 s\", round(freshness_p95_ms::numeric) AS \"Frescura p95 (ms)\", consumer_lag AS \"Atraso Kafka (msj)\", cause AS \"Causa\"\nFROM slo_measurements WHERE $__timeFilter(measured_at) AND breached ORDER BY measured_at DESC LIMIT 50",
           "format": "table",
           "rawQuery": true,
           "editorMode": "code"
